@@ -475,12 +475,11 @@ void rf_led_show(void) {
     set_sys_light();
     side_ws2812_set_color_strip(LEFT_SIDE, current_rgb.r, current_rgb.g, current_rgb.b);
     // light up corresponding BT/RF key
-    if (dev_info.link_mode <= LINK_BT_3) {
+    if (dev_info.link_mode <= LINK_BT_3 && led_idx.KC_GRV < RGB_MATRIX_LED_COUNT) {
         uint8_t my_pos = dev_info.link_mode == LINK_RF_24 ? 4 : dev_info.link_mode;
         if (rf_link_show_time > RF_LINK_SHOW_TIME - 10) {
             rgb_matrix_set_color(led_idx.KC_GRV - my_pos, RGB_OFF);
         } else {
-            uint8_t my_pos = dev_info.link_mode == LINK_RF_24 ? 4 : dev_info.link_mode;
             rgb_required = 1;
             rgb_matrix_set_color(led_idx.KC_GRV - my_pos, current_rgb.r, current_rgb.g, current_rgb.b);
         }
@@ -759,10 +758,27 @@ void rgb_test_show(void) {
     clear_rgb();
 }
 
+static void rgb_indicator_clear(void) {
+    for (uint8_t i = rgb_start_led; i <= rgb_end_led; i++) {
+        rgb_matrix_set_color(i, RGB_OFF);
+    }
+}
+
+/**
+ * @brief Light a range of key LEDs for show_time ms (UINT16_MAX = until reboot).
+ * @note  start_led/end_led may be UINT8_MAX when the key is not on the keymap;
+ *        such requests are ignored. end_led = UINT8_MAX means a single LED.
+ */
 void signal_rgb_led(uint8_t selected_color, uint8_t start_led, uint8_t end_led, uint16_t show_time) {
+    if (start_led >= RGB_MATRIX_LED_COUNT) { return; }
+    if (end_led >= RGB_MATRIX_LED_COUNT || end_led < start_led) { end_led = start_led; }
+
+    // A new indicator replaces the previous one: turn the old range off first.
+    if (rgb_show_time != 0) { rgb_indicator_clear(); }
+
     rgb_color           = selected_color;
     rgb_start_led       = start_led;
-    rgb_end_led         = end_led > RGB_MATRIX_LED_COUNT ? start_led : end_led;
+    rgb_end_led         = end_led;
     rgb_show_time       = show_time;
     rgb_indicator_timer = timer_read32();
 }
@@ -779,9 +795,7 @@ void rgb_led_indicator(void) {
             rgb_matrix_set_color(i, current_rgb.r, current_rgb.g, current_rgb.b);
         }
     } else {
-        for (uint8_t i = rgb_start_led; i <= rgb_end_led; i++) {
-            rgb_matrix_set_color(i, RGB_OFF);
-        }
+        rgb_indicator_clear();
         rgb_show_time       = 0;
         rgb_indicator_timer = 0;
     }
@@ -805,6 +819,7 @@ void caps_word_show(void) {
 
 void numlock_rgb_show(void) {
     static bool num_lock_rgb_on = 0;
+    if (led_idx.KC_NUM >= RGB_MATRIX_LED_COUNT) { return; }
     if (!host_keyboard_led_state().num_lock || user_config.numlock_state != 2) {
         if (num_lock_rgb_on) {
             num_lock_rgb_on = 0;

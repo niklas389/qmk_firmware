@@ -571,6 +571,15 @@ bool rgb_matrix_indicators_kb(void) {
     return true;
 }
 
+/**
+ * @brief Drop writes to LED indexes that do not exist.
+ * @note  get_led_idx() returns UINT8_MAX when a keycode is not on the keymap,
+ *        and several indicators use offsets from such indexes.
+ */
+int rgb_matrix_led_index(int index) {
+    return (index >= 0 && index < RGB_MATRIX_LED_COUNT) ? index : -1;
+}
+
 /* qmk keyboard post init */
 void keyboard_post_init_kb(void) {
     gpio_init();
