@@ -686,7 +686,8 @@ void led_power_handle(void) {
     }
 
 
-    if (rgb_matrix_is_enabled() && (rgb_matrix_get_val() != 0 || rgb_required > 0)) {
+    // Status indicators (rgb_required) need LED power even when the RGB matrix is toggled off.
+    if ((rgb_matrix_is_enabled() && rgb_matrix_get_val() != 0) || rgb_required > 0) {
         pwr_rgb_led_on();
         rgb_required = 0;
     } else if (rgb_interval > 50) {
