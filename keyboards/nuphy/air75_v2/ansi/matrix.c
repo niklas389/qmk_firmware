@@ -89,7 +89,8 @@ void matrix_io_delay(void) {
         return;
     }
 
-    uint16_t io_wait = no_act_time > 3000 ? 250 : MATRIX_IO_DELAY;
+    // Slow scanning after 30 s idle saves battery; skip it on USB power / charging.
+    uint16_t io_wait = (no_act_time > 3000 && !USB_ACTIVE) ? 250 : MATRIX_IO_DELAY;
     wait_us(io_wait);
 }
 
