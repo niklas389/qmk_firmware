@@ -270,6 +270,7 @@ void    dial_sw_fast_scan(void);
 void    timer_pro(void);
 void    load_eeprom_data(void);
 void    delay_update_eeprom_data(void);
+void    flush_eeprom_data(void);
 void    user_config_reset(void);
 void    led_power_handle(void);
 void    matrix_io_delay(void);

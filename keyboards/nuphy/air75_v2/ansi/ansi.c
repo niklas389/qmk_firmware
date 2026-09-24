@@ -450,6 +450,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
             } else {
                 if (f_gmode_reset_press) {
                     f_gmode_reset_press = 0;
+                    flush_eeprom_data();
                     game_mode_enable = !game_mode_enable;
                     game_mode_tweak();
                 }

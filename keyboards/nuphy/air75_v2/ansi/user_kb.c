@@ -180,6 +180,7 @@ void user_key_press(void) {
     if (f_gmode_reset_press) {
         f_gmode_reset_press++;
         if (f_gmode_reset_press > MEDIUM_PRESS_DELAY) {
+            flush_eeprom_data();
             game_config_reset(1);
             game_mode_tweak();
             f_gmode_reset_press = 0;
@@ -414,6 +415,61 @@ void call_update_eeprom_data(bool* eeprom_update_init) {
 }
 
 /**
+ * @brief Write pending settings to EEPROM now.
+ * @note  While low-battery power save is active the in-RAM brightness values
+ *        (RGB value 0, side light 1) are temporary, so the stored values are kept.
+ *        In game mode only the game_* fields are updated.
+ */
+static void write_pending_eeprom_data(void) {
+    if (user_update) {
+        eeconfig_read_kb_datablock(&read_user_config, 0, sizeof(read_user_config));
+        if (game_mode_enable) {
+            if (!rgb_power_save) {
+                read_user_config.game_rgb_val    = rgb_matrix_config.hsv.v;
+                read_user_config.game_side_light = user_config.ee_side_light;
+            }
+            read_user_config.game_rgb_hue       = rgb_matrix_config.hsv.h;
+            read_user_config.game_rgb_sat       = rgb_matrix_config.hsv.s;
+            read_user_config.game_rgb_mod       = rgb_matrix_config.mode;
+            read_user_config.game_side_colour   = user_config.ee_side_colour;
+            read_user_config.game_debounce_ms   = user_config.debounce_ms;
+            read_user_config.game_debounce_type = user_config.debounce_type;
+        } else {
+            uint8_t stored_side_light = read_user_config.ee_side_light;
+            read_user_config          = user_config;
+            if (rgb_power_save) { read_user_config.ee_side_light = stored_side_light; }
+        }
+        eeconfig_update_kb_datablock(&read_user_config, 0, sizeof(read_user_config));
+
+        user_update = 0;
+#ifndef NO_DEBUG
+        dprint("Updating EEPROM: user_config\n");
+#endif
+    }
+    if (rgb_update) {
+        rgb_config_t rgb_to_save = rgb_matrix_config;
+        if (rgb_power_save) {
+            rgb_config_t stored;
+            eeconfig_read_rgb_matrix(&stored);
+            rgb_to_save.hsv.v = stored.hsv.v;
+        }
+        eeconfig_update_rgb_matrix(&rgb_to_save);
+        rgb_update = 0;
+#ifndef NO_DEBUG
+        dprint("Updating EEPROM:  rgb_config\n");
+#endif
+    }
+    eeprom_update_timer = 0;
+}
+
+/**
+ * @brief Write pending settings immediately (before sleep, mode switch, reload).
+ */
+void flush_eeprom_data(void) {
+    if (user_update || rgb_update) { write_pending_eeprom_data(); }
+}
+
+/**
  * @brief User config update to eeprom with delay
  */
 void delay_update_eeprom_data(void) {
@@ -422,59 +478,16 @@ void delay_update_eeprom_data(void) {
         return;
     }
     if (timer_elapsed32(eeprom_update_timer) < (1000 * 30)) { return; }
-    if (user_update) {
-        if (game_mode_enable) {
-            eeconfig_read_kb_datablock(&read_user_config, 0, EECONFIG_KB_DATA_SIZE);
-            read_user_config.game_rgb_val       = rgb_matrix_config.hsv.v;
-            read_user_config.game_rgb_hue       = rgb_matrix_config.hsv.h;
-            read_user_config.game_rgb_sat       = rgb_matrix_config.hsv.s;
-            read_user_config.game_rgb_mod       = rgb_matrix_config.mode;
-            read_user_config.game_side_colour   = user_config.ee_side_colour;
-            read_user_config.game_side_light    = user_config.ee_side_light;
-            read_user_config.game_debounce_ms   = user_config.debounce_ms;
-            read_user_config.game_debounce_type = user_config.debounce_type;
-
-            eeconfig_update_kb_datablock(&read_user_config, 0, EECONFIG_KB_DATA_SIZE);
-        } else {
-            eeconfig_update_kb_datablock(&user_config, 0, EECONFIG_KB_DATA_SIZE);
-        }
-
-        user_update         = 0;
-#ifndef NO_DEBUG
-        dprint("Updating EEPROM: user_config\n");
-#endif
-    }
-    if (rgb_update) {
-        eeconfig_update_rgb_matrix(&rgb_matrix_config);
-        rgb_update          = 0;
-#ifndef NO_DEBUG
-        dprint("Updating EEPROM:  rgb_config\n");
-#endif
-    }
-    eeprom_update_timer = 0;
+    write_pending_eeprom_data();
 }
 
+/**
+ * @note Callers must call flush_eeprom_data() before flipping game_mode_enable,
+ *       so pending changes are stored with the semantics of the mode they were made in.
+ */
 void game_mode_tweak(void)
 {
     if (game_mode_enable) {
-        if (eeprom_update_timer != 0) {
-            eeprom_update_timer = 0;
-            if (user_update) {
-                eeconfig_update_kb_datablock(&user_config, 0, EECONFIG_KB_DATA_SIZE);
-                user_update = 0;
-#ifndef NO_DEBUG
-                dprint("Updating EEPROM: user_config\n");
-#endif
-            }
-            if (rgb_update) {
-                eeconfig_update_rgb_matrix(&rgb_matrix_config);
-                rgb_update          = 0;
-#ifndef NO_DEBUG
-                dprint("Updating EEPROM:  rgb_config\n");
-#endif
-            }
-        }
-
         pwr_rgb_led_on();
         rgb_matrix_mode_noeeprom(user_config.game_rgb_mod);
         rgb_matrix_config.hsv.v    = user_config.game_rgb_val;
@@ -645,6 +658,8 @@ void power_save(void) {
             rgb_matrix_config.hsv.v = user_config.game_rgb_val;
             user_config.ee_side_light = user_config.game_side_light;
         } else {
+            // Keep settings changed during power save, then restore stored brightness.
+            flush_eeprom_data();
             rgb_matrix_reload_from_eeprom();
             eeconfig_read_kb_datablock(&user_config, 0, EECONFIG_KB_DATA_SIZE);
         }
