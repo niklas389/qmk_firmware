@@ -589,7 +589,6 @@ void keyboard_post_init_kb(void) {
     // debug_keyboard = true;
     // debug_mouse    = true;
 #endif
-    interrupt_source_init();
     keyboard_post_init_user();
 }
 

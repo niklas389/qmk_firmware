@@ -96,6 +96,19 @@ void interrupt_source_init(void) {
 }
 
 /**
+ * @brief  Disable the wake-up interrupts set up by interrupt_source_init().
+ * @note   They are only needed in deep sleep. While awake, the matrix scan
+ *         toggles the row pins and would raise an EXTI interrupt for every
+ *         row of every scan.
+ */
+static void interrupt_source_deinit(void) {
+    EXTI->IMR &= ~0xFFFFU;
+    EXTI->RTSR &= ~0xFFFFU;
+    EXTI->FTSR &= ~0xFFFFU;
+    EXTI->PR = 0xFFFFU;
+}
+
+/**
  * @brief  Enter deep sleep
  * @note This is Nuphy's un-released logic with some cleanup/refactoring
  *       The MCU is put on a low power mode.
@@ -184,6 +197,7 @@ void matrix_scan_repeat(uint8_t repeat) {
  *       This is mostly Nuphy's unreleased logic with cleanup/refactoring by me.
  */
 void exit_deep_sleep(void) {
+    interrupt_source_deinit();
 
     // Matrix initialization & Scan
     extern void matrix_init_custom(void);
@@ -401,7 +415,7 @@ OSAL_IRQ_HANDLER(STM32_TIM6_HANDLER) {
 // For this to work you need to call m_timer6_init() in ansi.c post kb init user.
 // That enables the STM32_TIM6_HANDLER but I think it runs on the interrupt interval of the TIM6 timer.
 void idle_enter_sleep(void) {
-    if (no_act_time < 1000 || user_config.sleep_mode != 1) { return; }
+    if (no_act_time < 1000) { return; }
     TIM6->CNT      = 0;
     PWR_EnterSleepMode(PWR_SLEEPEntry_WFI);
 }
