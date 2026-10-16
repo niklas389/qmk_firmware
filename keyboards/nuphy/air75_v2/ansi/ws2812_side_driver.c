@@ -72,9 +72,10 @@ void side_ws2812_flush(void) {
         side_sendByte(side_leds[i].b);
     }
 
-    wait_ns(WS2812_RES);
-
     chSysUnlock();
+
+    // latch: the line only has to stay low, interrupts may extend this
+    wait_ns(WS2812_RES);
 
     flush_side_leds = false;
 }

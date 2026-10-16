@@ -175,6 +175,8 @@ Example: <br />
 
 -  The debug console is disabled to save flash and a USB interface.
 
+-  The key LEDs are driven by SPI1 with DMA instead of bit-banging. Sending a frame no longer pauses the matrix scan and interrupts for ~2.3ms (about 9% of the time with an animated effect), which removes that input delay jitter. The side light driver keeps interrupts disabled only while sending (~0.3ms instead of ~0.6ms).
+
 -  The VIA definition's effect list matches the firmware again.
 
 ## Author

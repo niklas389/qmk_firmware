@@ -123,6 +123,9 @@ void enter_deep_sleep(void) {
     enter_light_sleep();
     //
 #if !defined(DISABLE_MCU_SLEEP)
+    // let a key LED frame still in flight finish before the clocks stop
+    ws2812_wait_idle();
+
     // Close timer
     if (tim6_enabled) TIM_Cmd(TIM6, DISABLE);
 
@@ -219,6 +222,9 @@ void exit_deep_sleep(void) {
     dev_info.rf_state = RF_LINKING;
     rf_disconnect_delay = UINT8_MAX;
     rf_linking_time     = 0;
+
+    // deep sleep switched the key LED data pin to a GPIO output
+    ws2812_pin_init();
 
     exit_light_sleep(true);
 #endif
