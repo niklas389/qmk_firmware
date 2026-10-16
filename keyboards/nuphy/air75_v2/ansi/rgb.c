@@ -570,12 +570,20 @@ void bat_percent_led(void) {
  * @brief  Charging animation on the right side strip.
  * @note   Fills the strip one LED at a time (each LED fades in), holds it
  *         full, fades the whole strip out, pauses and starts over. Fills in
- *         the same direction as bat_percent_led().
+ *         the same direction as bat_percent_led(). Fades use a quadratic curve
+ *         so the dim end does not drop off abruptly, and the colour is
+ *         computed directly in the side LED's output steps (with rounding) so
+ *         every available brightness step is used.
  */
-#define CHARGE_FILL_STEP_MS 400
-#define CHARGE_HOLD_MS      400
-#define CHARGE_FADE_MS      800
-#define CHARGE_PAUSE_MS     300
+#define CHARGE_FILL_STEP_MS 600
+#define CHARGE_HOLD_MS      800
+#define CHARGE_FADE_MS      1600
+#define CHARGE_PAUSE_MS     600
+
+// 0..UINT16_MAX linear -> 0..UINT16_MAX quadratic
+static uint16_t charge_curve(uint32_t linear) {
+    return (linear * linear) / UINT16_MAX;
+}
 
 static void bat_charge_fill_show(void) {
     static uint32_t anim_start = 0;
@@ -589,29 +597,34 @@ static void bat_charge_fill_show(void) {
     const uint32_t cycle_ms = fill_ms + CHARGE_HOLD_MS + CHARGE_FADE_MS + CHARGE_PAUSE_MS;
     uint32_t       t        = timer_elapsed32(anim_start) % cycle_ms;
 
-    current_rgb.r = 0x80, current_rgb.g = 0x40, current_rgb.b = 0x00;
+    // same orange (0x80, 0x40, 0x00) and system brightness as the other battery indicators,
+    // expressed in side LED output steps (side_ws2812_set_color() divides by 4).
     set_sys_light();
+    const uint32_t red_max_q8 = 0x80 * 256 / (sys_light * 4); // 8.8 fixed point
 
     for (uint8_t i = 0; i < SIDE_LINE; i++) {
-        uint8_t level;
+        uint32_t level; // 0..UINT16_MAX, linear in time
         if (t < fill_ms) {
             uint32_t led_start = i * CHARGE_FILL_STEP_MS;
             if (t >= led_start + CHARGE_FILL_STEP_MS) {
-                level = UINT8_MAX;
+                level = UINT16_MAX;
             } else if (t > led_start) {
-                level = (t - led_start) * UINT8_MAX / CHARGE_FILL_STEP_MS;
+                level = (t - led_start) * UINT16_MAX / CHARGE_FILL_STEP_MS;
             } else {
                 level = 0;
             }
         } else if (t < fill_ms + CHARGE_HOLD_MS) {
-            level = UINT8_MAX;
+            level = UINT16_MAX;
         } else if (t < fill_ms + CHARGE_HOLD_MS + CHARGE_FADE_MS) {
-            level = UINT8_MAX - (t - fill_ms - CHARGE_HOLD_MS) * UINT8_MAX / CHARGE_FADE_MS;
+            level = UINT16_MAX - (t - fill_ms - CHARGE_HOLD_MS) * UINT16_MAX / CHARGE_FADE_MS;
         } else {
             level = 0;
         }
 
-        side_ws2812_set_color(SIDE_LED_NUM - 1 - i, current_rgb.r * level / UINT8_MAX, current_rgb.g * level / UINT8_MAX, current_rgb.b * level / UINT8_MAX);
+        uint32_t red   = (red_max_q8 * charge_curve(level) / UINT16_MAX + 128) / 256;
+        uint32_t green = red / 2; // keep the 2:1 orange ratio down to the last step
+
+        side_ws2812_set_color(SIDE_LED_NUM - 1 - i, red << 2, green << 2, 0);
     }
 }
 
@@ -822,17 +835,38 @@ void rgb_matrix_step_game_mode(uint8_t step) {
 /**
  * @brief  side_led_show.
  */
+#define SIDE_INDICATOR_INTERVAL 16
+
+static void side_animation_show(void);
+
 void normal_led_process(void) {
-    static uint32_t side_update_time  = 0;
+    static uint32_t side_update_time      = 0;
+    static uint32_t indicator_update_time = 0;
 
     // side_mode & side_speed should always be valid...
-    // refresh side LED animation based on speed.
+    // refresh side LED animation based on speed, the indicators on top of it
+    // at a fixed rate so their animations stay smooth with slow side modes.
 
     uint32_t update_interval = game_mode_enable ? 500 : side_speed_table[user_config.ee_side_mode][user_config.ee_side_speed];
 
-    if (timer_elapsed32(side_update_time) < update_interval) { return; }
-    side_update_time = timer_read32();
+    bool side_due = timer_elapsed32(side_update_time) >= update_interval;
+    if (!side_due && timer_elapsed32(indicator_update_time) < SIDE_INDICATOR_INTERVAL) { return; }
+    indicator_update_time = timer_read32();
 
+    if (side_due) {
+        side_update_time = timer_read32();
+        side_animation_show();
+    }
+
+    side_one_show();
+    bat_led_show();
+    sleep_sw_led_show();
+
+    sys_sw_led_show();
+    sys_led_show();
+}
+
+static void side_animation_show(void) {
 
     if (user_config.ee_side_light == 0) {
         side_off_mode_show();
@@ -856,13 +890,6 @@ void normal_led_process(void) {
                 break;
         }
     }
-    
-    side_one_show();
-    bat_led_show();
-    sleep_sw_led_show();
-
-    sys_sw_led_show();
-    sys_led_show();
 }
 
 void realtime_led_process(void) {
