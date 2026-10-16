@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #include "ws2812_driver.h"
 
 rgb_t    side_leds[SIDE_LED_NUM] = {0};

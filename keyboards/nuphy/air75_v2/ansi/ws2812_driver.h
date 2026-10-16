@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #include "ws2812.h"
 #include "gpio.h"
 #include "stdbool.h"

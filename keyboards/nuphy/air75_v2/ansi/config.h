@@ -48,30 +48,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DYNAMIC_KEYMAP_MACRO_DELAY          8
 
 #define WAIT_US_TIMER                       GPTD14
-// #undef USE_CIE1931_CURVE
-
-/*
-#define WS2812_PWM_DRIVER PWMD3
-#define WS2812_PWM_CHANNEL 2
-#define WS2812_PWM_PAL_MODE 1
-#define WS2812_DMA_STREAM STM32_DMA1_STREAM3
-#define WS2812_DMA_CHANNEL 3
-*/
-// #define WS2812_PWM_TARGET_PERIOD 800000
-
-
-#define WS2812_SPI_USE_CIRCULAR_BUFFER
 
 #define EECONFIG_KB_DATA_SIZE               26
 #define GPIO_INPUT_PIN_DELAY                12
 #define RF_QUEUE_SIZE                       64
-
-
-// remove unused QMK functions to save space
-/*
-#define NO_ACTION_ONESHOT
-#undef LAYER_LOCK_ENABLE
-#undef LEADER_ENABLE
-#undef GRAVE_ESC_ENABLE
-#undef SPACE_CADET_ENABLE
-*/

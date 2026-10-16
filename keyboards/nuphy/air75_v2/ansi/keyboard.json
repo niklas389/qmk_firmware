@@ -7,10 +7,8 @@
         "debounce_type": "custom",
         "lto": true
     },
-    "debounce": 5,
     "features": {
         "bootmagic": true,
-        "command": false,
         "console": true,
         "extrakey": true,
         "key_lock": false,
@@ -48,7 +46,7 @@
     },
     "ws2812": {
         "pin": "A7",
-        "driver": "bitbang"
+        "driver": "custom"
     },
     "diode_direction": "COL2ROW",
     "rgb_matrix": {
@@ -60,9 +58,7 @@
       "sleep": true,
       "led_process_limit": 8,
       "led_flush_limit": 26,
-      "default": { 
-          "animation": "cycle_left_right",
-          "hue": 0,
+      "default": {
           "val": 72,
           "speed": 153
       },
@@ -115,8 +111,7 @@
           "starlight": true,
           "starlight_dual_hue": true,
           "starlight_dual_sat": true,
-          "riverflow": true,
-          "effect_max": true
+          "riverflow": true
         },
         "layout": [
             {"matrix": [0, 0], "x": 0, "y": 0, "flags": 4},
