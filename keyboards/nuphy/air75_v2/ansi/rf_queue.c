@@ -33,13 +33,15 @@ static void clear_rf_queue(void) {
 }
 
 static bool enqueue_rf_report(report_buffer_t *report) {
-    uint8_t next = (queue_head + 1) % RF_QUEUE_SIZE;
+    uint8_t next    = (queue_head + 1) % RF_QUEUE_SIZE;
+    bool    dropped = false;
+    if (next == queue_tail) { // queue is full, drop the oldest report to keep the latest key state.
+        queue_tail = (queue_tail + 1) % RF_QUEUE_SIZE;
+        dropped    = true;
+    }
     buffer_queue[queue_head] = *report;
     queue_head               = next;
-    if (next == queue_tail) { // queue is full.
-        return false;
-    }
-    return true;
+    return !dropped;
 }
 
 static bool dequeue_rf_report(report_buffer_t *report) {

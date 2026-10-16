@@ -274,7 +274,6 @@ void pwr_rgb_led_on(void) {
     gpio_write_pin_high(DC_BOOST_PIN);
     gpio_set_pin_output_push_pull(DRIVER_LED_CS_PIN);
     gpio_write_pin_low(DRIVER_LED_CS_PIN);
-    rgb_matrix_set_color(RGB_MATRIX_LED_COUNT, 1, 1, 1);
     flush_rgb_leds = true;
     rgb_led_on = 1;
 #if !defined(NO_DEBUG)

@@ -237,8 +237,6 @@ extern bool               flush_side_leds;
 extern uint8_t            rgb_required;
 extern uint8_t            low_bat_level;
 extern bool               rgb_power_save;
-extern uint16_t           left_pressed;
-extern uint16_t           right_pressed;
 extern uint32_t           dequeue_delay;
 extern uint8_t            delay_step_timer;
 extern uint16_t           side_one_timer;

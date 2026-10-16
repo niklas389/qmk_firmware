@@ -41,37 +41,39 @@ bool pre_process_record_kb(uint16_t keycode, keyrecord_t *record) {
 
 }
 
+/**
+ * @brief SOCD handling for the opposing key pairs in SOCD_KEYS.
+ * @note  Each pair tracks its own physical key state, so keys of different
+ *        pairs never affect each other.
+ *        1 cancellation:  the last pressed key wins, the other one stays released.
+ *        2 exclusion:     the last pressed key wins, the other one comes back on release.
+ *        3 nullification: both keys held means neither is sent.
+ */
 bool process_record_socd(uint16_t keycode, keyrecord_t *record) {
-    if (user_config.socd_mode == 0) { return true; }
-    uint8_t socd_array[] = { SOCD_KEYS };
-    for (uint8_t idx = 0; idx < sizeof_array(socd_array); ++idx) {
-        if ( keycode != socd_array[idx] ) { continue; }
+    static const uint16_t socd_keys[] = { SOCD_KEYS };
+    static bool           socd_held[sizeof_array(socd_keys)];
 
-        if (idx % 2 == 0) {
-            left_pressed = record->event.pressed;
-            idx++;
-        } else {
-            right_pressed = record->event.pressed;
-            idx--;
-        }
+    for (uint8_t idx = 0; idx < sizeof_array(socd_keys); ++idx) {
+        if (keycode != socd_keys[idx]) { continue; }
+
+        uint8_t other = idx ^ 1;
+        socd_held[idx] = record->event.pressed;
+
+        if (user_config.socd_mode == 0 || !socd_held[other]) { return true; }
 
         if (record->event.pressed) {
-            if (right_pressed + left_pressed > 2) {
-                unregister_code(socd_array[idx]);
-                if (user_config.socd_mode == 3) { return false; }
-            }
-        } else {
-            if (right_pressed + left_pressed > 2) {
-                if (user_config.socd_mode >= 2) { register_code(socd_array[idx]); }
-            }
+            unregister_code(socd_keys[other]);
+            if (user_config.socd_mode == 3) { return false; }
+        } else if (user_config.socd_mode >= 2) {
+            register_code(socd_keys[other]);
         }
         return true;
     }
     return true;
 }
 
-/* qmk process record user*/
-bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+/* eeprom bookkeeping and game mode filtering for keyboard specific keycodes */
+static bool process_record_nuphy(uint16_t keycode, keyrecord_t *record) {
 
     switch (keycode) {
         case SIDE_VAI:
@@ -142,6 +144,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 
     if (!process_record_user(keycode, record)) {
+        return false;
+    }
+
+    if (!process_record_nuphy(keycode, record)) {
         return false;
     }
 
