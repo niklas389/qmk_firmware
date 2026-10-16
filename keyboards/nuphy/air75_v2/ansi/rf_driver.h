@@ -18,3 +18,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 extern host_driver_t rf_host_driver;
+
+void rf_force_report_protocol(void);

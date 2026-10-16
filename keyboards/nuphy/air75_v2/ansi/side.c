@@ -124,7 +124,7 @@ void side_light_contol(uint8_t dir) {
             side_light--;
     }
     user_config.ee_side_light = side_light;
-    eeconfig_update_user_datablock(&user_config);
+    eeconfig_update_user_datablock(&user_config, 0, EECONFIG_USER_DATA_SIZE);
 }
 
 /**
@@ -141,7 +141,7 @@ void side_speed_contol(uint8_t dir) {
         if ((side_speed) < SIDE_SPEED_MAX) side_speed++;
     }
     user_config.ee_side_speed = side_speed;
-    eeconfig_update_user_datablock(&user_config);
+    eeconfig_update_user_datablock(&user_config, 0, EECONFIG_USER_DATA_SIZE);
 }
 
 /**
@@ -181,7 +181,7 @@ void side_colour_control(uint8_t dir) {
     }
     user_config.ee_side_rgb    = side_rgb;
     user_config.ee_side_colour = side_colour;
-    eeconfig_update_user_datablock(&user_config);
+    eeconfig_update_user_datablock(&user_config, 0, EECONFIG_USER_DATA_SIZE);
 }
 
 /**
@@ -204,7 +204,7 @@ void side_mode_control(uint8_t dir) {
     }
     side_play_point          = 0;
     user_config.ee_side_mode = side_mode;
-    eeconfig_update_user_datablock(&user_config);
+    eeconfig_update_user_datablock(&user_config, 0, EECONFIG_USER_DATA_SIZE);
 }
 
 /**
@@ -718,11 +718,11 @@ void bat_led_show(void) {
  */
 void device_reset_show(void) {
 
-    writePinHigh(DC_BOOST_PIN);
-    setPinOutput(DRIVER_SIDE_CS_PIN);
-    setPinOutput(DRIVER_LED_CS_PIN);
-    writePinLow(DRIVER_SIDE_CS_PIN);
-    writePinLow(DRIVER_LED_CS_PIN);
+    gpio_write_pin_high(DC_BOOST_PIN);
+    gpio_set_pin_output(DRIVER_SIDE_CS_PIN);
+    gpio_set_pin_output(DRIVER_LED_CS_PIN);
+    gpio_write_pin_low(DRIVER_SIDE_CS_PIN);
+    gpio_write_pin_low(DRIVER_LED_CS_PIN);
 
     for (int blink_cnt = 0; blink_cnt < 3; blink_cnt++) {
         rgb_matrix_set_color_all(0x10, 0x10, 0x10);
@@ -769,7 +769,7 @@ void device_reset_init(void) {
     user_config.ee_side_rgb             = side_rgb;
     user_config.ee_side_colour          = side_colour;
     user_config.sleep_enable            = true;
-    eeconfig_update_user_datablock(&user_config);
+    eeconfig_update_user_datablock(&user_config, 0, EECONFIG_USER_DATA_SIZE);
 }
 
 /**
@@ -778,11 +778,11 @@ void device_reset_init(void) {
 void rgb_test_show(void)
 {
     // open power control
-    writePinHigh(DC_BOOST_PIN);
-    setPinOutput(DRIVER_LED_CS_PIN);
-    writePinLow(DRIVER_LED_CS_PIN);
-    setPinOutput(DRIVER_SIDE_CS_PIN);
-    writePinLow(DRIVER_SIDE_CS_PIN);
+    gpio_write_pin_high(DC_BOOST_PIN);
+    gpio_set_pin_output(DRIVER_LED_CS_PIN);
+    gpio_write_pin_low(DRIVER_LED_CS_PIN);
+    gpio_set_pin_output(DRIVER_SIDE_CS_PIN);
+    gpio_write_pin_low(DRIVER_SIDE_CS_PIN);
 
     // set test color
     rgb_matrix_set_color_all(0xFF, 0x00, 0x00);
