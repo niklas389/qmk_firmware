@@ -20,8 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include_next <halconf.h>
 
 /*
-#undef HAL_USE_PWM
-#define HAL_USE_PWM TRUE
 */
 
 #undef HAL_USE_SERIAL
@@ -30,3 +28,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #undef HAL_USE_GPT
 #define HAL_USE_GPT TRUE
+
+#undef HAL_USE_SPI
+#define HAL_USE_SPI TRUE

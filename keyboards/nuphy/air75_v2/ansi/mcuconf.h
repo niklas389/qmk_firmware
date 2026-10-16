@@ -20,12 +20,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include_next <mcuconf.h>
 
 /*
-#undef STM32_PWM_USE_TIM3
-#define STM32_PWM_USE_TIM3 TRUE
 */
 
 #undef STM32_SERIAL_USE_USART1
 #define STM32_SERIAL_USE_USART1 TRUE
+
+#undef STM32_SPI_USE_SPI1
+#define STM32_SPI_USE_SPI1 TRUE
 
 
 #undef STM32_GPT_USE_TIM14

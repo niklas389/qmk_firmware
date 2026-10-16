@@ -487,12 +487,13 @@ void dev_sts_sync(void) {
     }
 
  
-    /** This is called in house keeping with 1ms delay and
-     *  1ms wait time originally. Set to 0 the wait time to not hold up housekeeping
-     *  if RF is sleeping we don't want to sync and wakeup the RF
+    /** Status sync with the RF module, called from housekeeping. Sent without
+     *  the 1ms delay NuPhy used before it (key reports are sent without one
+     *  too), the ack wait stays at 1ms so the reply is complete when parsed.
+     *  If RF is sleeping we don't want to sync and wakeup the RF.
     */
     if (f_wakeup_prepare && f_rf_sleep) { return; }
-    uart_send_cmd(CMD_RF_STS_SYSC, 1, 1);
+    uart_send_cmd(CMD_RF_STS_SYSC, 1, 0);
     uart_rpt_timer = timer_read32();
 
     if (dev_info.link_mode != LINK_USB) {

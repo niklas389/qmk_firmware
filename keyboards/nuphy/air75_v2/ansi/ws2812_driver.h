@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #include "ws2812.h"
 #include "gpio.h"
 #include "stdbool.h"
@@ -116,6 +118,9 @@ extern   bool            flush_side_leds;
 extern   ws2812_led_t    ws2812_leds[WS2812_LED_COUNT];
 extern   bool            flush_rgb_leds;
 
+
+void     ws2812_pin_init(void);
+void     ws2812_wait_idle(void);
 
 void     side_sendByte(uint8_t byte);
 bool     is_side_ws2812_off(void);

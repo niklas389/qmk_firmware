@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #include "ws2812_driver.h"
 
 rgb_t    side_leds[SIDE_LED_NUM] = {0};
@@ -70,9 +72,10 @@ void side_ws2812_flush(void) {
         side_sendByte(side_leds[i].b);
     }
 
-    wait_ns(WS2812_RES);
-
     chSysUnlock();
+
+    // latch: the line only has to stay low, interrupts may extend this
+    wait_ns(WS2812_RES);
 
     flush_side_leds = false;
 }
