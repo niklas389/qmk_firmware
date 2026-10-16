@@ -51,10 +51,10 @@ The following customizations were applied on top of the stock firmware.
 -  Fix LED lights not powering down when not used.
 
 -  Fix keystrokes being lost on wake. Wake keystrokes will appear after a very short delay while board re-establishes connection. BT may not be as reliable as the dongle. <br />
-   This is achieved through a buffer of 64 key actions (key down and key up are 2 actions). The buffer is cleared if connection is not established within 1s after the last action. <br />
-   Key events after the buffer is full will also be dropped. (Buffer algorithm taken from jincao1) <br />
+   This is achieved through a buffer of 63 key actions (key down and key up are 2 actions). The buffer is cleared if connection is not established within 6s after the last action. <br />
+   When the buffer is full the oldest event is dropped, so the latest key state is always sent. (Buffer algorithm taken from jincao1) <br />
 
--  FN + M + F1 => enables Debug mode. This mode will show messages in console including matrix scan rate and various settings changes
+-  FN + M + F1 => enables Debug mode. This mode will show messages in console including matrix scan rate and various settings changes. The debug console is disabled by default; set `"console": true` under `features` in `keyboard.json` to use it.
 
 -  FN + M + ESC => will reboot keyboard. If you do not unpress the ESC key, it will enter bootmode so you can load new firmware.
 
@@ -71,7 +71,7 @@ The following customizations were applied on top of the stock firmware.
 
 -  FM + M + WIN => Will Enable or Disable the WIN key (useful in some games) (also called WIN_LOCK function)
 
--  FN + M + K => SOCD_TOG This will allow you to choose the SOCD / Rapid Trigger / Key Cancelation mode (custom algorithm): <br />
+-  FN + M + K => SOCD_TOG This will allow you to choose the SOCD / Rapid Trigger / Key Cancelation mode (custom algorithm) for the key pairs A/D, Left/Right and Up/Down. Each pair is handled on its own. The K key lights up for 3 seconds in the colour of the selected mode: red (0), yellow (1), spring green (2), blue (3). <br />
 
 (0) Disabled: <br />
 <pre>Keys   | .. | A. | AD | A.
@@ -125,7 +125,7 @@ Example: <br />
 
 -  New RGB animation available (including in GAME mode). When selected it will light up: ESC, A , S ,D, W and arrow keys
 
--  New RGB commands are available but not set to any keys: RGB_RMOD, RGB_HUD, RGB_M_P, RGB_SAI, RGB_SAD, RGB_TOG
+-  New RGB commands are available but not set to any keys: RM_PREV, RM_HUED, RM_SATU, RM_SATD, RM_TOGG
 
 -  Light Sleep can be adjusted from 1 minute to 100 minutes using keys SLEEP_D and SLEEP_I (FN + M + '-' and FN + M + '+'). <br />
    Adjustment are different depending on mode: <br />
@@ -155,6 +155,28 @@ Example: <br />
   Keyboard will not enter sleep regardless of settings if it is charging or if it is connected via USB. <br />
   Keyboard will not enter sleep if GAME MODE is active <br />
  <br />
+## Changes on top of adi4086's firmware
+
+-  Ported to current QMK (2026). Flashing resets all stored settings once.
+
+-  Fixed the RF module UART pins after QMK renamed the UART settings. Without it the dongle did not connect and Enter, Backspace, Del and other keys in matrix columns 13/14 fired on their own.
+
+-  Removed QMK OS detection: it was unused and reset the keyboard on every USB bus reset.
+
+-  SOCD: each key pair (A/D, Left/Right, Up/Down) is tracked on its own. Holding A and tapping an arrow key no longer leaves an arrow key stuck, and SOCD applies immediately instead of after 100-200ms.
+
+-  Wake from MCU deep sleep on key press instead of key release. The wake keystroke is sent once the connection is back.
+
+-  Charging: while charging, the battery indicator on the right side light fills up LED by LED, holds, fades out and starts over.
+
+-  Fixed a memory overwrite when powering on the key LEDs, a battery power-save check that ran on every frame and a matrix scan that could hang on a shorted key column.
+
+-  The idle CPU sleep after 10 seconds now applies to every sleep mode as documented, and the deep sleep wake-up interrupts are only enabled while in deep sleep.
+
+-  The debug console is disabled to save flash and a USB interface.
+
+-  The VIA definition's effect list matches the firmware again.
+
 ## Author
 
 [@adi4086](https://github.com/adi4086)
