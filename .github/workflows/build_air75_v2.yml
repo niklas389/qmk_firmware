@@ -1,0 +1,44 @@
+name: Build NuPhy Air75 V2 firmware
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [nuphy-air75]
+  pull_request:
+    branches: [nuphy-air75]
+  workflow_dispatch:
+
+concurrency:
+  group: build_air75_v2-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Compile nuphy/air75_v2/ansi:default
+    runs-on: ubuntu-latest
+    container: ghcr.io/qmk/qmk_cli
+
+    steps:
+      - name: Disable safe.directory check
+        run: |
+          git config --global --add safe.directory '*'
+
+      - name: Checkout QMK Firmware
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: pip3 install -r requirements.txt
+
+      - name: Compile
+        run: qmk compile -kb nuphy/air75_v2/ansi -km default
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v7
+        with:
+          name: nuphy_air75_v2_ansi_default-${{ github.sha }}
+          path: nuphy_air75_v2_ansi_default.bin
+          if-no-files-found: error
