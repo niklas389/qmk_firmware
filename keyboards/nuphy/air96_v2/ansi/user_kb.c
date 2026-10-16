@@ -426,7 +426,7 @@ void timer_pro(void) {
  * @brief  load eeprom data.
  */
 void load_eeprom_data(void) {
-    eeconfig_read_kb_datablock(&user_config);
+    eeconfig_read_kb_datablock(&user_config, 0, EECONFIG_KB_DATA_SIZE);
     if (user_config.init_layer < 100) { user_config_reset(); }
 }
 
@@ -446,7 +446,7 @@ void delay_update_eeprom_data(void) {
     if (timer_elapsed32(eeprom_update_timer) < (1000 * 30)) { return; }
     if (user_update) {
         if (game_mode_enable) {
-            eeconfig_read_kb_datablock(&read_user_config);
+            eeconfig_read_kb_datablock(&read_user_config, 0, EECONFIG_KB_DATA_SIZE);
             read_user_config.game_rgb_val       = rgb_matrix_config.hsv.v;
             read_user_config.game_rgb_hue       = rgb_matrix_config.hsv.h;
             read_user_config.game_rgb_sat       = rgb_matrix_config.hsv.s;
@@ -456,9 +456,9 @@ void delay_update_eeprom_data(void) {
             read_user_config.game_debounce_ms   = user_config.debounce_ms;
             read_user_config.game_debounce_type = user_config.debounce_type;
 
-            eeconfig_update_kb_datablock(&read_user_config);
+            eeconfig_update_kb_datablock(&read_user_config, 0, EECONFIG_KB_DATA_SIZE);
         } else {
-            eeconfig_update_kb_datablock(&user_config);
+            eeconfig_update_kb_datablock(&user_config, 0, EECONFIG_KB_DATA_SIZE);
         }
 
         user_update         = 0;
@@ -467,7 +467,7 @@ void delay_update_eeprom_data(void) {
 #endif
     }
     if (rgb_update) {
-        eeconfig_update_rgb_matrix();
+        eeconfig_update_rgb_matrix(&rgb_matrix_config);
         rgb_update          = 0;
 #ifndef NO_DEBUG
         dprint("Updating EEPROM:  rgb_config\n");
@@ -482,14 +482,14 @@ void game_mode_tweak(void)
         if (eeprom_update_timer != 0) {
             eeprom_update_timer = 0;
             if (user_update) {
-                eeconfig_update_kb_datablock(&user_config);
+                eeconfig_update_kb_datablock(&user_config, 0, EECONFIG_KB_DATA_SIZE);
                 user_update = 0;
 #ifndef NO_DEBUG
                 dprint("Updating EEPROM: user_config\n");
 #endif
             }
             if (rgb_update) {
-                eeconfig_update_rgb_matrix();
+                eeconfig_update_rgb_matrix(&rgb_matrix_config);
                 rgb_update          = 0;
 #ifndef NO_DEBUG
                 dprint("Updating EEPROM:  rgb_config\n");
@@ -511,7 +511,7 @@ void game_mode_tweak(void)
         if (user_config.numlock_state != 0) { user_config.numlock_state = 1; }
     } else {
         rgb_matrix_reload_from_eeprom();
-        eeconfig_read_kb_datablock(&user_config);
+        eeconfig_read_kb_datablock(&user_config, 0, EECONFIG_KB_DATA_SIZE);
     }
     // signal_rgb_led(game_mode_enable, G_LED, G_LED, 2000);
 #ifndef NO_DEBUG
@@ -643,11 +643,11 @@ void user_config_reset(void) {
     keymap_config.no_gui                = 0;
     user_config_override();
     game_config_reset(0);
-    eeconfig_update_kb_datablock(&user_config);
+    eeconfig_update_kb_datablock(&user_config, 0, EECONFIG_KB_DATA_SIZE);
 }
 
 void game_config_reset(uint8_t save_to_eeprom) {
-    if (save_to_eeprom) { eeconfig_read_kb_datablock(&user_config); }
+    if (save_to_eeprom) { eeconfig_read_kb_datablock(&user_config, 0, EECONFIG_KB_DATA_SIZE); }
     user_config.game_side_colour       = SIDE_MATRIX_GAME_MODE;
     user_config.game_side_light        = 2;
     user_config.game_rgb_mod           = RGB_MATRIX_GAME_MODE;
@@ -657,7 +657,7 @@ void game_config_reset(uint8_t save_to_eeprom) {
     user_config.game_debounce_ms       = DEBOUNCE;
     user_config.game_debounce_type     = 1;
     game_config_override();
-    if (save_to_eeprom) { eeconfig_update_kb_datablock(&user_config); }
+    if (save_to_eeprom) { eeconfig_update_kb_datablock(&user_config, 0, EECONFIG_KB_DATA_SIZE); }
 }
 
 /**
@@ -675,7 +675,7 @@ void power_save(void) {
             user_config.ee_side_light = user_config.game_side_light;
         } else {
             rgb_matrix_reload_from_eeprom();
-            eeconfig_read_kb_datablock(&user_config);
+            eeconfig_read_kb_datablock(&user_config, 0, EECONFIG_KB_DATA_SIZE);
         }
         rgb_power_save = 0;
     } else if ((rgb_matrix_config.hsv.v > 0 || user_config.ee_side_light > 1) && dev_info.rf_battery < low_bat_level) {

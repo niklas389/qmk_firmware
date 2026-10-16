@@ -32,7 +32,23 @@ static void    rf_send_nkro(report_nkro_t *report);
 static void    rf_send_mouse(report_mouse_t *report);
 static void    rf_send_extra(report_extra_t *report);
 
-const host_driver_t rf_host_driver = {rf_keyboard_leds, rf_send_keyboard, rf_send_nkro, rf_send_mouse, rf_send_extra};
+#ifdef RAW_ENABLE
+static void rf_send_raw_hid(uint8_t *data, uint8_t length);
+#endif
+
+const host_driver_t rf_host_driver = {
+    .keyboard_leds = rf_keyboard_leds,
+    .send_keyboard = rf_send_keyboard,
+    .send_nkro     = rf_send_nkro,
+    .send_mouse    = rf_send_mouse,
+    .send_extra    = rf_send_extra,
+#ifdef RAW_ENABLE
+    .send_raw_hid = rf_send_raw_hid,
+#endif
+};
+
+/* defined in user_kb.c */
+extern host_driver_t *m_host_driver;
 
 /* defined in rf.c */
 void clear_report_buffer(void);
@@ -157,3 +173,13 @@ static void rf_send_extra(report_extra_t *report) {
     send_or_queue(&rpt);
 }
 
+#ifdef RAW_ENABLE
+/**
+ * @brief Raw HID (VIA) is USB only; keep it on the USB driver while in RF mode.
+ */
+static void rf_send_raw_hid(uint8_t *data, uint8_t length) {
+    if (m_host_driver && m_host_driver->send_raw_hid) {
+        m_host_driver->send_raw_hid(data, length);
+    }
+}
+#endif
