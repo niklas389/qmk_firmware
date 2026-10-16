@@ -79,7 +79,9 @@ void interrupt_source_init(void) {
     m_exti.EXTI_Line    = 0XFFFF; // GPIO 0-15
     m_exti.EXTI_LineCmd = ENABLE;
     m_exti.EXTI_Mode    = EXTI_Mode_Interrupt;
-    m_exti.EXTI_Trigger = EXTI_Trigger_Falling;
+    // In deep sleep the columns are driven high and the rows pulled low, so a
+    // key press pulls its row high: wake on the rising edge (key press).
+    m_exti.EXTI_Trigger = EXTI_Trigger_Rising;
     EXTI_Init(&m_exti);
 
     NVIC_InitTypeDef NVIC_InitStructure;
