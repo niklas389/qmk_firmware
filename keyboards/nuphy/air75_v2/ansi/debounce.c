@@ -51,11 +51,6 @@ void debounce_init(void) {
     }
 }
 
-void debounce_free(void) {
-    free(debounce_counters);
-    debounce_counters = NULL;
-}
-
 bool debounce(matrix_row_t raw[], matrix_row_t cooked[], bool changed) {
     const uint8_t num_rows = MATRIX_ROWS;
     bool updated_last = false;

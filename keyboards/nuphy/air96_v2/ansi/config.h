@@ -26,11 +26,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RGB_DRIVER_SDB1                     C6
 #define RGB_DRIVER_SDB2                     C7
 
-#define SERIAL_DRIVER                       SD1
-#define SD1_TX_PIN                          B6
-#define SD1_TX_PAL_MODE                     0
-#define SD1_RX_PIN                          B7
-#define SD1_RX_PAL_MODE                     0
+#define UART_DRIVER                         SD1
+#define UART_TX_PIN                         B6
+#define UART_TX_PAL_MODE                    0
+#define UART_RX_PIN                         B7
+#define UART_RX_PAL_MODE                    0
 
 #if !defined(NO_DEBUG) && !defined(CONSOLE_ENABLE)
 #define NO_DEBUG
@@ -85,8 +85,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define GPIO_INPUT_PIN_DELAY                12
 #define RF_QUEUE_SIZE                       64
 
-#define OS_DETECTION_DEBOUNCE              250
-#define OS_DETECTION_KEYBOARD_RESET
 
 
 // #define DISABLE_MCU_SLEEP

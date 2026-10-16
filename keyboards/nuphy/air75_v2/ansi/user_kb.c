@@ -57,9 +57,6 @@ uint16_t       f_gmode_reset_press     = 0;
 uint32_t       sys_show_timer          = 0;
 uint32_t       sleep_show_timer        = 0;
 
-uint16_t       left_pressed            = 0;
-uint16_t       right_pressed           = 0;
-
 host_driver_t *m_host_driver           = 0;
 
 uint16_t       link_timeout            = T_MIN;
@@ -189,10 +186,6 @@ void user_key_press(void) {
         }
     }
  
-    // SnapTap Function
-    if (left_pressed)  {   left_pressed++; }
-    if (right_pressed) {  right_pressed++; }
-
     // Toggle Caps Word
     if (f_caps_word_tg) {
         f_caps_word_tg++;
@@ -643,8 +636,9 @@ void game_config_reset(uint8_t save_to_eeprom) {
 }
 
 void power_save(void) {
-    static uint16_t power_check_timer      = 0;
+    static uint32_t power_check_timer      = 0;
     if (timer_elapsed32(power_check_timer) < 5000) { return; }
+    power_check_timer = timer_read32();
 
     if (dev_info.rf_battery > low_bat_level && rgb_power_save == 1) {
         if (game_mode_enable) {

@@ -32,6 +32,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    define MATRIX_DEBOUNCE 12
 #endif
 
+// Upper bound of column reads while waiting for the columns to settle high,
+// so a column stuck low (hardware fault) cannot hang the scan loop.
+#ifndef MATRIX_SETTLE_MAX_READS
+#    define MATRIX_SETTLE_MAX_READS 1000
+#endif
+
 /* matrix state(1:on, 0:off) */
 extern matrix_row_t raw_matrix[MATRIX_ROWS]; // raw values
 extern matrix_row_t matrix[MATRIX_ROWS];     // debounced values
@@ -94,8 +100,9 @@ uint8_t matrix_scan_custom(matrix_row_t current_matrix[]) {
     // Set col, read rows
 
     for (uint8_t current_row = 0; current_row < MATRIX_ROWS; current_row++) {
-        uint8_t stable_threshold = MATRIX_DEBOUNCE;
-        while (stable_threshold > 0) { // Wait for all Col signals to go HIGH
+        uint8_t  stable_threshold = MATRIX_DEBOUNCE;
+        uint16_t max_reads        = MATRIX_SETTLE_MAX_READS;
+        while (stable_threshold > 0 && max_reads-- > 0) { // Wait for all Col signals to go HIGH
             stable_threshold = ((((palReadPort(PAL_PORT(A0)) & colA_bits) ^ colA_bits) | ((palReadPort(PAL_PORT(B0)) & colB_bits) ^ colB_bits)) == 0) ? (stable_threshold - 1) : MATRIX_DEBOUNCE;
         }
 
