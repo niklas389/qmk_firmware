@@ -27,24 +27,39 @@ enum custom_keycodes {
     LNK_BLE2,
     LNK_BLE3,
 
-    MAC_VOICE,
-    MAC_DND,
+    MAC_VOICE,  // F5
+    MAC_DND,    //
+    TASK,       // KC_CALC
+    SEARCH,     // KC_LCTL + KC_F
+    PRT_SCR,    // PrintScreen
+    PRT_AREA,   // PrintScreen
 
-    SIDE_VAI,
     SIDE_VAD,
+    SIDE_VAI,
     SIDE_MOD,
     SIDE_HUI,
-    SIDE_SPI,
     SIDE_SPD,
+    SIDE_SPI,
+    SIDE_1,
 
     DEV_RESET,
-    SLEEP_MODE,
     BAT_SHOW,
     BAT_NUM,
-    RGB_TEST
-};
+    RGB_TEST,
 
-#define SYS_PRT                 G(S(KC_3))
-#define MAC_PRTA                G(S(KC_4))
-#define WIN_PRTA                G(S(KC_S))
-#define MAC_SEARCH              G(KC_SPC)
+    NUMLOCK_INS,
+    NUMLOCK_IND,
+    CAPS_WORD,
+    WIN_LOCK,
+    SLEEP_MODE,
+    SLEEP_NOW,
+    SLEEP_D,
+    SLEEP_I,
+
+    DEBOUNCE_D,
+    DEBOUNCE_I,
+    DEBOUNCE_T,
+
+    GAME_MODE,
+    SOCD_TOG
+};
