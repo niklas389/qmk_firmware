@@ -3,7 +3,7 @@ SRC += rf.c
 SRC += ws2812_bitbang.c ws2812_side_driver.c
 SRC += rgb.c
 
-SRC += mcu_pwr.c sleep.c rf_driver.c rf_queue.c debounce.c redefine.c
+SRC += mcu_pwr.c sleep.c rf_driver.c rf_queue.c debounce.c
 
 UART_DRIVER_REQUIRED = yes
 

@@ -22,7 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 //------------------------------------------------
 
-static bool f_usb_deinit    = 0;
 static bool rgb_led_on      = 0;
 static bool side_led_on     = 0;
 static bool tim6_enabled    = false;
@@ -33,34 +32,6 @@ static const pin_t row_pins[MATRIX_ROWS] = MATRIX_ROW_PINS;
 static const pin_t col_pins[MATRIX_COLS] = MATRIX_COL_PINS;
 
 // extern void clear_matrix_state(void);
-
-/** ================================================================
- * @brief  Turn off USB
- *
- ================================================================*/
-void m_deinit_usb_072(void) {
-    GPIO_InitTypeDef GPIO_InitStructure = {0};
-
-#if (0)
-    // call qmk library to turn off USB
-    void close_usb(void);
-    close_usb();
-#endif
-
-    // Reset USB register
-    RCC_APB1PeriphResetCmd(RCC_APB1RSTR_USBRST, ENABLE);
-    RCC_APB1PeriphResetCmd(RCC_APB1RSTR_USBRST, DISABLE);
-    wait_ms(10);
-
-    // Turn off USB clock
-    RCC_APB1PeriphClockCmd(RCC_APB1ENR_USBEN, DISABLE);
-
-    // GPIO to suspended state
-    GPIO_InitStructure.GPIO_Pin  = GPIO_Pin_11 | GPIO_Pin_12;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_Init((GPIO_TypeDef *)GPIOA, &GPIO_InitStructure);
-}
 
 /** ================================================================
  * @brief   Low Power mode
@@ -193,13 +164,6 @@ void exit_light_sleep(bool stm32_init) {
     if (stm32_init) {
         stm32_clock_init();
         if (tim6_enabled) TIM_Cmd(TIM6, ENABLE);
-    }
-
-
-    if (f_usb_deinit) {
-        usb_lld_wakeup_host(&USB_DRIVER);
-        restart_usb_driver(&USB_DRIVER);
-        f_usb_deinit = 0;
     }
 
 }
